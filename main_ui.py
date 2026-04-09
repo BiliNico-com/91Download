@@ -158,7 +158,7 @@ class ModernApp(ctk.CTk):
 
         # 品牌 Logo 区
         brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        brand.pack(fill="x", padx=16, pady=(36, 16))
+        brand.pack(fill="x", padx=16, pady=(186, 16))
 
         logo_lbl = ctk.CTkLabel(brand, text="📥", font=ctk.CTkFont(size=28))
         logo_lbl.pack(anchor="w")
@@ -486,7 +486,9 @@ class ModernApp(ctk.CTk):
                                          width=160, height=32, font=ctk.CTkFont(size=13),
                                          fg_color=Theme.BG_INPUT, button_color=Theme.BG_INPUT,
                                          button_hover_color=Theme.DROPDOWN_BG,
-                                         dropdown_fg_color=Theme.DROPDOWN_BG)
+                                         dropdown_fg_color=Theme.DROPDOWN_BG,
+                                         text_color=Theme.TEXT_PRIMARY,
+                                         dropdown_text_color=Theme.TEXT_PRIMARY)
         site_combo.pack(side="left", padx=(8, 20))
 
         ctk.CTkLabel(row1, text="列表:", font=ctk.CTkFont(size=13),
@@ -497,7 +499,9 @@ class ModernApp(ctk.CTk):
                                         width=110, height=32, font=ctk.CTkFont(size=13),
                                         fg_color=Theme.BG_INPUT, button_color=Theme.BG_INPUT,
                                         button_hover_color=Theme.DROPDOWN_BG,
-                                        dropdown_fg_color=Theme.DROPDOWN_BG)
+                                        dropdown_fg_color=Theme.DROPDOWN_BG,
+                                        text_color=Theme.TEXT_PRIMARY,
+                                        dropdown_text_color=Theme.TEXT_PRIMARY)
         type_combo.pack(side="left", padx=(8, 0))
 
         # 第二行：页码 + 按钮
@@ -629,7 +633,9 @@ class ModernApp(ctk.CTk):
                                          width=160, height=32, font=ctk.CTkFont(size=13),
                                          fg_color=Theme.BG_INPUT, button_color=Theme.BG_INPUT,
                                          button_hover_color=Theme.DROPDOWN_BG,
-                                         dropdown_fg_color=Theme.DROPDOWN_BG)
+                                         dropdown_fg_color=Theme.DROPDOWN_BG,
+                                         text_color=Theme.TEXT_PRIMARY,
+                                         dropdown_text_color=Theme.TEXT_PRIMARY)
         site_combo.pack(side="left", padx=(8, 16))
 
         ctk.CTkLabel(left_part, text="类型:", font=ctk.CTkFont(size=13),
@@ -641,6 +647,8 @@ class ModernApp(ctk.CTk):
                                           fg_color=Theme.BG_INPUT, button_color=Theme.BG_INPUT,
                                           button_hover_color=Theme.DROPDOWN_BG,
                                           dropdown_fg_color=Theme.DROPDOWN_BG,
+                                          text_color=Theme.TEXT_PRIMARY,
+                                          dropdown_text_color=Theme.TEXT_PRIMARY,
                                           command=lambda _: self._toggle_search_mode())
         stype_combo.pack(side="left", padx=(8, 16))
 
@@ -676,7 +684,9 @@ class ModernApp(ctk.CTk):
                                          font=ctk.CTkFont(size=13), fg_color=Theme.BG_INPUT,
                                          button_color=Theme.BG_INPUT,
                                          button_hover_color=Theme.DROPDOWN_BG,
-                                         dropdown_fg_color=Theme.DROPDOWN_BG)
+                                         dropdown_fg_color=Theme.DROPDOWN_BG,
+                                         text_color=Theme.TEXT_PRIMARY,
+                                         dropdown_text_color=Theme.TEXT_PRIMARY)
         sort_combo.pack(side="left", padx=(8, 16))
 
         ctk.CTkLabel(self.search_video_frame, text="页码:", text_color=Theme.TEXT_SECONDARY).pack(side="left")
@@ -839,7 +849,9 @@ class ModernApp(ctk.CTk):
                            values=[""] + list(MIRROR_SITES.values()), width=140, height=32,
                            font=ctk.CTkFont(size=13), fg_color=Theme.BG_INPUT, button_color=Theme.BG_INPUT,
                            button_hover_color=Theme.DROPDOWN_BG,
-                           dropdown_fg_color=Theme.DROPDOWN_BG).pack(side="left", padx=(6, 12))
+                           dropdown_fg_color=Theme.DROPDOWN_BG,
+                           text_color=Theme.TEXT_PRIMARY,
+                           dropdown_text_color=Theme.TEXT_PRIMARY).pack(side="left", padx=(6, 12))
 
         ctk.CTkLabel(top_inner, text="类型:", text_color=Theme.TEXT_SECONDARY).pack(side="left")
         self.single_type_var = ctk.StringVar(value="视频")
@@ -847,7 +859,9 @@ class ModernApp(ctk.CTk):
                            values=list(LIST_TYPE_ALIASES.keys()), width=85, height=32,
                            font=ctk.CTkFont(size=13), fg_color=Theme.BG_INPUT, button_color=Theme.BG_INPUT,
                            button_hover_color=Theme.DROPDOWN_BG,
-                           dropdown_fg_color=Theme.DROPDOWN_BG).pack(side="left", padx=(6, 12))
+                           dropdown_fg_color=Theme.DROPDOWN_BG,
+                           text_color=Theme.TEXT_PRIMARY,
+                           dropdown_text_color=Theme.TEXT_PRIMARY).pack(side="left", padx=(6, 12))
 
         # 翻页
         ctk.CTkButton(top_inner, text="◀", width=34, height=32,
