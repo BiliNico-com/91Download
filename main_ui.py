@@ -176,6 +176,7 @@ class ModernApp(ctk.CTk):
         # 托盘相关
         self.tray_icon = None
         self._tray_enabled = self.config.get("minimize_to_tray", True)
+        self._is_initialized = False  # 防止启动时误触发 withdraw
 
         try:
             from PIL import Image, ImageTk
@@ -200,6 +201,9 @@ class ModernApp(ctk.CTk):
 
         # 静默环境检查
         self.after(500, self._silent_env_check)
+
+        # 标记初始化完成（避免 Unmap 事件在启动时误触发 withdraw）
+        self.after(1000, lambda: setattr(self, '_is_initialized', True))
 
     # ================================================================
     #  布局构建：侧边栏 + 内容区
@@ -2158,13 +2162,24 @@ class ModernApp(ctk.CTk):
 
     def _install_deps(self):
         self.env_textbox.insert("end","\n正在安装依赖...\n");self.update()
-        try:
-            result=subprocess.run([sys.executable,"-m","pip","install","-r",str(CONFIG_DIR/"requirements.txt")],capture_output=True,text=True)
-            self.env_textbox.insert("end",result.stdout)
-            if result.returncode==0: self.env_textbox.insert("end","\n依赖安装成功\n")
-            else: self.env_textbox.insert("end",f"\n安装失败: {result.stderr}\n")
-            self._check_environment([])
-        except Exception as e: self.env_textbox.insert("end",f"\n安装失败: {e}\n")
+        def _do_install():
+            try:
+                # 打包后 sys.executable 指向 exe 本身，无法用于 pip install
+                if getattr(sys, 'frozen', False):
+                    self.after(0, lambda: self.env_textbox.insert("end",
+                        "\n打包版本不支持在线安装依赖，请手动安装 Python 环境后运行源码版本。\n"))
+                    return
+                result=subprocess.run([sys.executable,"-m","pip","install","-r",
+                    str(CONFIG_DIR/"requirements.txt")],capture_output=True,text=True)
+                def _update_ui():
+                    self.env_textbox.insert("end",result.stdout)
+                    if result.returncode==0: self.env_textbox.insert("end","\n依赖安装成功\n")
+                    else: self.env_textbox.insert("end",f"\n安装失败: {result.stderr}\n")
+                    self._check_environment([])
+                self.after(0, _update_ui)
+            except Exception as e:
+                self.after(0, lambda: self.env_textbox.insert("end",f"\n安装失败: {e}\n"))
+        threading.Thread(target=_do_install, daemon=True).start()
 
     def _download_ffmpeg(self):
         import webbrowser;webbrowser.open("https://www.gyan.dev/ffmpeg/builds/")
@@ -2251,16 +2266,12 @@ class ModernApp(ctk.CTk):
 
     def _on_minimize_to_tray(self, event=None):
         """窗口最小化时判断是否隐藏到托盘"""
-        if not self._tray_enabled or not HAS_PYSTRAY:
+        if not self._is_initialized:
             return
-        if str(event) == "<Map>":
+        if not self._tray_enabled or not HAS_PYSTRAY or not self.tray_icon:
             return
         # 判断是否是最小化事件
         try:
-            state = self.state() if hasattr(self, 'state') else None
-            if state == 'withdrawn':
-                return
-            # Windows 下用 wm_state 检测最小化
             cur_state = self.wm_state()
             if cur_state == 'iconic':
                 self.withdraw()
@@ -2298,9 +2309,10 @@ def main():
     app = ModernApp()
 
     def on_closing():
-        # 如果启用了托盘且托盘可用 → 隐藏到托盘
+        # 如果启用了托盘且托盘图标已创建 → 隐藏到托盘
         if app._tray_enabled and HAS_PYSTRAY and app.tray_icon is not None:
-            app.withdraw()
+            try: app.withdraw()
+            except: pass
             return
         # 否则正常退出
         if hasattr(app,'crawler') and app.crawler:
