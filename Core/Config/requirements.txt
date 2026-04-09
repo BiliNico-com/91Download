@@ -3,3 +3,4 @@ requests>=2.31.0
 Pillow>=10.0.0
 pycryptodome>=3.19.0
 pystray>=0.19.0
+pysocks>=1.7.1

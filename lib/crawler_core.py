@@ -152,19 +152,11 @@ def http_get_text(url: str, timeout: int = 15, headers: dict = None,
     return None
 
 
-# ==================== SOCKS5 代理支持（本地 socks.py，无需 pip install） ====================
-
-# 确保能导入同级目录下的 socks.py
-_crawler_dir = Path(__file__).parent
-if str(_crawler_dir) not in sys.path:
-    sys.path.insert(0, str(_crawler_dir))
-
-import socks as socks_module  # noqa: E402 — 本地 socks.py
-
+# ==================== SOCKS5 代理支持（依赖 pysocks） ====================
 
 def build_socks5_session(proxy_host: str, proxy_port: int,
                          proxy_user: str = None, proxy_pass: str = None) -> requests.Session:
-    """创建使用 SOCKS5 代理的 requests Session"""
+    """创建使用 SOCKS5 代理的 requests Session（需要 pysocks）"""
     import requests as req
 
     if proxy_user and proxy_pass:
@@ -583,7 +575,7 @@ class CrawlerCore:
         self._session_total_bytes = 0
         self._session_start_time: float = 0
 
-        # SOCKS5 代理配置（纯 Python 实现，无需 PySocks）
+        # SOCKS5 代理配置（依赖 pysocks）
         if config.get("proxy_enabled"):
             proxy_host = config.get("proxy_host", "").strip()
             proxy_port = config.get("proxy_port", "").strip()
