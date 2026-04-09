@@ -88,7 +88,7 @@ jobs:
         run: |
           copy README.md "dist\%APP_NAME%\"
           if not exist "dist\%APP_NAME%\Core\Config" mkdir "dist\%APP_NAME%\Core\Config"
-          echo {"output_dir":"downloads","ffmpeg_path":"","proxy_enabled":false,"proxy_host":"127.0.0.1","proxy_port":"1080","site":"https://ml0987.xyz","list_type":"list","page_start":1,"page_end":3,"title_with_author":true,"sort_by_upload_date":false,"sites":{"ml0987.xyz":"https://ml0987.xyz","hsex.icu":"https://hsex.icu","hsex.men":"https://hsex.men"}} > "dist\%APP_NAME%\Core\Config\config.json"
+          echo {"output_dir":"downloads","ffmpeg_path":"","proxy_enabled":false,"proxy_host":"127.0.0.1","proxy_port":"1080","site":"https://ml0987.xyz","list_type":"list","page_start":1,"page_end":3,"title_with_author":true,"sort_by_upload_date":false,"minimize_to_tray":true,"sites":{"ml0987.xyz":"https://ml0987.xyz","hsex.icu":"https://hsex.icu","hsex.men":"https://hsex.men"}} > "dist\%APP_NAME%\Core\Config\config.json"
           copy logo.png "dist\%APP_NAME%\"
 
       - name: 打包ZIP

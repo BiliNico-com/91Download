@@ -26,6 +26,13 @@ try:
 except ImportError:
     Image = None  # logo会fallback到文字
 
+try:
+    import pystray
+    from pystray import MenuItem, Menu as TrayMenu
+    HAS_PYSTRAY = True
+except ImportError:
+    HAS_PYSTRAY = False
+
 # ---- 爬虫核心模块 ----
 from lib import (
     CrawlerCore, MIRROR_SITES, LIST_TYPES,
@@ -93,6 +100,7 @@ DEFAULT_CONFIG = {
     "page_end": 3,
     "title_with_author": True,
     "sort_by_upload_date": True,
+    "minimize_to_tray": True,
 }
 
 # ==================== 日志 ====================
@@ -165,6 +173,10 @@ class ModernApp(ctk.CTk):
         self._batch_done_videos = 0
         self._batch_success = 0
 
+        # 托盘相关
+        self.tray_icon = None
+        self._tray_enabled = self.config.get("minimize_to_tray", True)
+
         try:
             from PIL import Image, ImageTk
             self._has_pil = True
@@ -178,6 +190,13 @@ class ModernApp(ctk.CTk):
         self._build_sidebar()
         self._build_main_area()
         self._show_initial_page()
+
+        # 初始化托盘（如果可用且启用）
+        if HAS_PYSTRAY and self._tray_enabled:
+            self._setup_tray()
+
+        # 绑定窗口最小化事件 → 托盘
+        self.bind("<Unmap>", self._on_minimize_to_tray)
 
         # 静默环境检查
         self.after(500, self._silent_env_check)
@@ -198,7 +217,7 @@ class ModernApp(ctk.CTk):
         brand.pack(fill="x", padx=16, pady=(36, 8))
 
         # 加载 Logo 图片
-        _logo_path = APP_DIR / "logo.png"
+        _logo_path = BASE_DIR / "logo.png"
         if _logo_path.exists():
             self.logo_img = ctk.CTkImage(
                 light_image=Image.open(_logo_path),
@@ -226,7 +245,7 @@ class ModernApp(ctk.CTk):
         NAV_ICON_SIZE = (18, 18)
         _nav_icons = {}
         for _nk in ("batch", "search", "single", "settings", "logs", "envcheck"):
-            _np = APP_DIR / f"nav_{_nk}.png"
+            _np = BASE_DIR / f"nav_{_nk}.png"
             if _np.exists():
                 _nav_icons[_nk] = ctk.CTkImage(
                     light_image=Image.open(_np),
@@ -237,7 +256,7 @@ class ModernApp(ctk.CTk):
 
         # ── 加载全部 UI 图标（分层尺寸） ──
         def _ico(name, sz):
-            p = APP_DIR / f"icon_{name}.png"
+            p = BASE_DIR / f"icon_{name}.png"
             if p.exists():
                 return ctk.CTkImage(light_image=Image.open(p), dark_image=Image.open(p), size=sz)
             return None
@@ -1161,6 +1180,16 @@ class ModernApp(ctk.CTk):
         ctk.CTkCheckBox(dlcard, text="按视频上传日期分类（关闭则全部存到下载当天）", variable=self.sort_by_upload_date_var,
                          font=ctk.CTkFont(size=13)).pack(anchor="w", padx=16, pady=(0, 14))
 
+        # 最小化到托盘
+        tcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
+        tcard.pack(fill="x", pady=(0, 10))
+        ctk.CTkLabel(tcard, text=" 最小化到托盘", font=ctk.CTkFont(size=14, weight="bold"),
+                      text_color=Theme.TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 8))
+
+        self.minimize_to_tray_var = ctk.BooleanVar(value=self.config.get("minimize_to_tray", True))
+        ctk.CTkCheckBox(tcard, text="启用（最小化和关闭按钮均隐藏至系统托盘，右键可退出）", variable=self.minimize_to_tray_var,
+                         font=ctk.CTkFont(size=13), command=self._on_toggle_tray).pack(anchor="w", padx=16, pady=(0, 14))
+
         # 代理设置
         pcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
         pcard.pack(fill="x", pady=(0, 10))
@@ -1315,7 +1344,7 @@ class ModernApp(ctk.CTk):
         else:
             self.search_author_frame.pack_forget()
             self.search_author_list_frame.pack_forget()
-            self.search_video_frame.pack(fill="x", pady=(0, 8))
+            self.search_video_frame.pack(fill="x", padx=20, pady=(0, 8))
 
     def _on_search_action(self):
         if self.search_type_var.get() == "搜作者":
@@ -1999,8 +2028,11 @@ class ModernApp(ctk.CTk):
             "title_with_author": self.title_with_author_var.get(), "sort_by_upload_date": self.sort_by_upload_date_var.get(),
             "proxy_enabled": self.proxy_enabled_var.get(), "proxy_host": self.proxy_host_var.get(),
             "proxy_port": self.proxy_port_var.get(), "proxy_user": self.proxy_user_var.get(),
-            "proxy_pass": self.proxy_pass_var.get(),
+            "proxy_pass": self.proxy_pass_var.get(), "minimize_to_tray": self.minimize_to_tray_var.get(),
         })
+        # 同步托盘开关
+        if hasattr(self, '_tray_enabled'):
+            self._tray_enabled = self.minimize_to_tray_var.get()
         save_config(self.config)
         self._show_info("保存成功")
 
@@ -2064,8 +2096,7 @@ class ModernApp(ctk.CTk):
     # ---- 环境检测 ----
 
     def get_ffmpeg_path(self):
-        if getattr(sys,'frozen',False): return Path(sys.executable).parent/"ffmpeg.exe"
-        return APP_DIR/"ffmpeg.exe"
+        return BASE_DIR / "ffmpeg.exe"
 
     def _silent_env_check(self):
         errors=[]
@@ -2139,6 +2170,97 @@ class ModernApp(ctk.CTk):
         import webbrowser;webbrowser.open("https://www.gyan.dev/ffmpeg/builds/")
         self._show_info("请下载 ffmpeg-release-essentials.zip，解压后将 ffmpeg.exe 放到程序目录")
 
+    # ---- 系统托盘 ----
+
+    def _on_toggle_tray(self):
+        """托盘开关切换时实时生效"""
+        self._tray_enabled = self.minimize_to_tray_var.get()
+        if self._tray_enabled and not self.tray_icon:
+            # 从关闭状态启用 → 初始化托盘
+            if HAS_PYSTRAY:
+                self._setup_tray()
+
+    def _setup_tray(self):
+        """初始化系统托盘图标"""
+        if not HAS_PYSTRAY or not self._has_pil:
+            return
+        try:
+            # 生成托盘图标（绿色圆角方块+下载箭头）
+            img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+            from PIL import ImageDraw, ImageFont
+            draw = ImageDraw.Draw(img)
+            # 绿色圆角矩形背景（模拟）
+            draw.rounded_rectangle([8, 8, 56, 56], radius=12, fill=(16, 185, 129, 255))  # #10b981
+            # 下载箭头
+            draw.polygon([(28, 20), (44, 36), (34, 36), (34, 48), (22, 48), (22, 36), (12, 36)],
+                         fill=(255, 255, 255, 255))
+            # 横线
+            draw.rectangle([14, 46, 50, 50], fill=(255, 255, 255, 255))
+
+            self.tray_icon = pystray.Icon(
+                name="91Download",
+                icon=img,
+                menu=TrayMenu(
+                    MenuItem('显示主界面', self._tray_show_window, default=True),
+                    MenuItem('停止所有下载', self._tray_stop_all),
+                    TrayMenu.SEPARATOR,
+                    MenuItem('退出', self._tray_quit),
+                ),
+                title="91Download",
+            )
+            # 在独立线程中运行托盘，避免阻塞 tkinter 主循环
+            import threading
+            threading.Thread(target=self.tray_icon.run, daemon=True).start()
+        except Exception as e:
+            logger.warning(f"托盘初始化失败: {e}")
+            self.tray_icon = None
+
+    def _tray_show_window(self, icon=None, item=None):
+        """从托盘恢复主窗口"""
+        self.after(0, lambda: (
+            self.deiconify(),
+            self.state('normal')
+        ))
+
+    def _tray_stop_all(self, icon=None, item=None):
+        """停止所有下载"""
+        self.after(0, self._stop_all_downloads)
+
+    def _stop_all_downloads(self):
+        """停止所有正在进行的下载任务"""
+        stopped_any = False
+        if self._crawl_stopping and self.crawl_thread and self.crawl_thread.is_alive():
+            self._crawl_stopping = True
+            if self.crawler:
+                self.crawler.stop()
+            stopped_any = True
+        if stopped_any:
+            logger.info("已通过托盘菜单停止所有下载")
+
+    def _tray_quit(self, icon=None, item=None):
+        """退出程序"""
+        if self.tray_icon:
+            self.tray_icon.stop()
+        self.after(0, self.destroy)
+
+    def _on_minimize_to_tray(self, event=None):
+        """窗口最小化时判断是否隐藏到托盘"""
+        if not self._tray_enabled or not HAS_PYSTRAY:
+            return
+        if str(event) == "<Map>":
+            return
+        # 判断是否是最小化事件
+        try:
+            state = self.state() if hasattr(self, 'state') else None
+            if state == 'withdrawn':
+                return
+            # Windows 下用 wm_state 检测最小化
+            cur_state = self.wm_state()
+            if cur_state == 'iconic':
+                self.withdraw()
+        except Exception:
+            pass
+
     # ---- 通用弹窗 ----
 
     def _show_warning(self,msg):
@@ -2168,11 +2290,21 @@ def save_config(cfg:dict):
 
 def main():
     app = ModernApp()
+
     def on_closing():
+        # 如果启用了托盘且托盘可用 → 隐藏到托盘
+        if app._tray_enabled and HAS_PYSTRAY and app.tray_icon is not None:
+            app.withdraw()
+            return
+        # 否则正常退出
         if hasattr(app,'crawler') and app.crawler:
             try: app.crawler.flush_history()
             except: pass
+        if app.tray_icon:
+            try: app.tray_icon.stop()
+            except: pass
         app.destroy()
+
     app.protocol("WM_DELETE_WINDOW", on_closing)
     app.mainloop()
 
