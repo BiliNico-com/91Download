@@ -1,3 +1,8 @@
+# 非核心文件（设计文档/原型/旧源码）
+app.py
+DESIGN-SPEC.md
+MIGRATION-GUIDE.md
+web-spider-ui.html
 # 虚拟环境
 venv/
 # 下载输出
@@ -17,7 +22,7 @@ __pycache__/
 Thumbs.db
 # 日志
 *.log
-# 本地配置（可选保留）
+# 本地配置
 config.json
 # WorkBuddy 内部文件
 .workbuddy/
