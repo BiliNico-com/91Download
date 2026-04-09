@@ -102,7 +102,7 @@ ctk.set_default_color_theme("blue")
 class ModernApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("🕷️ WebSpider Pro — hsex 视频下载器")
+        self.title("视频下载器")
         self.geometry("1200x750")
         self.minsize(1000, 680)
         self.configure(fg_color=Theme.BG_BODY)
@@ -150,18 +150,14 @@ class ModernApp(ctk.CTk):
 
         # 品牌 Logo 区
         brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        brand.pack(fill="x", padx=20, pady=(28, 20))
+        brand.pack(fill="x", padx=16, pady=(24, 16))
 
-        logo_lbl = ctk.CTkLabel(brand, text="🕷️", font=ctk.CTkFont(size=32))
+        logo_lbl = ctk.CTkLabel(brand, text="📥", font=ctk.CTkFont(size=28))
         logo_lbl.pack(anchor="w")
-        name_lbl = ctk.CTkLabel(brand, text="WebSpider Pro",
+        name_lbl = ctk.CTkLabel(brand, text="91Download",
                                  font=ctk.CTkFont(size=17, weight="bold"),
                                  text_color=Theme.TEXT_PRIMARY)
         name_lbl.pack(anchor="w", pady=(2, 0))
-        ver_lbl = ctk.CTkLabel(brand, text="Modern Edition v2.0",
-                                font=ctk.CTkFont(size=11),
-                                text_color=Theme.TEXT_MUTED)
-        ver_lbl.pack(anchor="w")
 
         # 分隔线
         sep = ctk.CTkFrame(self.sidebar, height=1, fg_color=Theme.BORDER_COLOR)
@@ -196,23 +192,6 @@ class ModernApp(ctk.CTk):
             nav_btn.grid(row=i+1, column=0, sticky="ew", padx=(12, 12), pady=2)
             self.nav_buttons[page_name] = nav_btn
             self.nav_frames[page_name] = (nav_btn, nav_btn)
-
-        # 底部升级卡
-        upgrade_card = ctk.CTkFrame(
-            self.sidebar, fg_color=Theme.GRADIENT_START, corner_radius=16
-        )
-        upgrade_card.place(relx=0.5, rely=0.88, relwidth=0.82, anchor="center")
-
-        ctk.CTkLabel(upgrade_card, text="🚀", font=ctk.CTkFont(size=24)).pack(pady=(16, 4), anchor="w", padx=16)
-        ctk.CTkLabel(upgrade_card, text="Pro 版本",
-                      font=ctk.CTkFont(size=13, weight="bold"), text_color="white").pack(anchor="w", padx=16)
-        ctk.CTkLabel(upgrade_card, text="解锁高级功能",
-                      font=ctk.CTkFont(size=11), text_color="#c7d2fe").pack(anchor="w", padx=16, pady=(0, 12))
-
-        ctk.CTkButton(upgrade_card, text="了解更多 →",
-                      fg_color="white", text_color=Theme.PRIMARY,
-                      hover_color="#f1f5f9", font=ctk.CTkFont(size=11, weight="bold"),
-                      width=100, height=30, corner_radius=20).pack(pady=(0, 16), padx=16)
 
     def _build_main_area(self):
         """右侧内容区"""
@@ -497,7 +476,7 @@ class ModernApp(ctk.CTk):
         site_combo = ctk.CTkOptionMenu(row1, variable=self.site_var, values=site_values,
                                          width=160, height=32, font=ctk.CTkFont(size=13),
                                          fg_color=Theme.BG_INPUT, button_color=Theme.BG_INPUT,
-                                         button_hover_color=Theme.BG_HOVER, dropdown_fg_color=["black", "white"])
+                                         button_hover_color=Theme.BG_HOVER)
         site_combo.pack(side="left", padx=(8, 20))
 
         ctk.CTkLabel(row1, text="列表:", font=ctk.CTkFont(size=13),
@@ -566,6 +545,7 @@ class ModernApp(ctk.CTk):
         self.crawl_overall_label.pack(fill="x", padx=16)
 
         self.crawl_progress = ctk.CTkProgressBar(right_card, mode="determinate", height=6)
+        self.crawl_progress.set(0)
         self.crawl_progress.pack(fill="x", padx=16, pady=(6, 4))
 
         self.crawl_slice_label = ctk.CTkLabel(right_card, text="", font=ctk.CTkFont(size=11),
@@ -576,6 +556,7 @@ class ModernApp(ctk.CTk):
                                                text_color="#888", anchor="w")
         self.crawl_merge_label.pack(fill="x", padx=16)
         self.crawl_merge_progress = ctk.CTkProgressBar(right_card, mode="determinate", height=6)
+        self.crawl_merge_progress.set(0)
         self.crawl_merge_progress.pack(fill="x", padx=16, pady=(4, 6))
 
         speed_row = ctk.CTkFrame(right_card, fg_color="transparent")
@@ -783,6 +764,7 @@ class ModernApp(ctk.CTk):
         self.search_overall_label.pack(fill="x", padx=16)
 
         self.search_progress = ctk.CTkProgressBar(rcard, mode="determinate", height=6)
+        self.search_progress.set(0)
         self.search_progress.pack(fill="x", padx=16, pady=(6, 4))
 
         self.search_slice_label = ctk.CTkLabel(rcard, text="", font=ctk.CTkFont(size=11), text_color="#555")
@@ -791,6 +773,7 @@ class ModernApp(ctk.CTk):
         self.search_merge_label = ctk.CTkLabel(rcard, text="", font=ctk.CTkFont(size=11), text_color="#888")
         self.search_merge_label.pack(fill="x", padx=16)
         self.search_merge_progress = ctk.CTkProgressBar(rcard, mode="determinate", height=6)
+        self.search_merge_progress.set(0)
         self.search_merge_progress.pack(fill="x", padx=16, pady=(4, 6))
 
         spd_row = ctk.CTkFrame(rcard, fg_color="transparent")
@@ -896,6 +879,7 @@ class ModernApp(ctk.CTk):
         prog_r1.pack(fill="x", padx=16, pady=(4, 0))
         ctk.CTkLabel(prog_r1, text="切片:", width=38, text_color=Theme.TEXT_SECONDARY).pack(side="left")
         self.single_progress = ctk.CTkProgressBar(prog_r1, mode="determinate", height=6)
+        self.single_progress.set(0)
         self.single_progress.pack(side="left", fill="x", expand=True, padx=(6, 0))
         self.single_slice_label = ctk.CTkLabel(prog_r1, text="", font=ctk.CTkFont(size=11), text_color="#555", width=100)
         self.single_slice_label.pack(side="left")
@@ -904,6 +888,7 @@ class ModernApp(ctk.CTk):
         merge_r.pack(fill="x", padx=16, pady=(4, 0))
         ctk.CTkLabel(merge_r, text="合并:", width=38, text_color=Theme.TEXT_SECONDARY).pack(side="left")
         self.single_merge_progress = ctk.CTkProgressBar(merge_r, mode="determinate", height=6)
+        self.single_merge_progress.set(0)
         self.single_merge_progress.pack(side="left", fill="x", expand=True, padx=(6, 0))
         self.single_merge_label = ctk.CTkLabel(merge_r, text="", font=ctk.CTkFont(size=11), text_color="#888", width=100)
         self.single_merge_label.pack(side="left")
