@@ -103,7 +103,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.TAG }}
           name: ${{ steps.version.outputs.TAG }}
           body: |
-            ## hsex 视频下载器 ${{ steps.version.outputs.TAG }}
+            ## 91Download ${{ steps.version.outputs.TAG }}
 
             ### 下载
             解压后直接运行 `91Download.exe`，内置 ffmpeg，无需额外配置。

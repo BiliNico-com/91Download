@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-hsex 视频下载器 - Modern UI 版本
-基于 CustomTkinter 的现代化界面 + 完整业务逻辑（从 app.py 移植）
+91Download - 91镜像站视频下载器
+基于 CustomTkinter 的现代化界面
 """
 
 import os
