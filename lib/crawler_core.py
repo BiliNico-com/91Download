@@ -566,7 +566,8 @@ class CrawlerCore:
 
     def __init__(self, config: dict, log_callback=None, progress_callback=None,
                  info_callback=None, confirm_callback=None, base_url: str = None,
-                 merge_progress_callback=None, speed_callback=None):
+                 merge_progress_callback=None, speed_callback=None,
+                 config_dir: Path = None):
         self.config = config
         self.log_callback = log_callback
         self.progress_callback = progress_callback
@@ -575,6 +576,7 @@ class CrawlerCore:
         self.info_callback = info_callback
         self.confirm_callback = confirm_callback  # 确认弹窗回调
         self.overall_progress_callback = None  # 整体进度回调 (done, total)，由外部注入
+        self._config_dir = config_dir or Path(__file__).parent.parent / "Core" / "Config"
         self._stop_flag = False
         self.base_url = (base_url or config.get("site", "https://ml0987.xyz")).rstrip("/")
         self.session = requests.Session()
@@ -604,14 +606,12 @@ class CrawlerCore:
         self._lock = threading.RLock()                  # 可重入锁（RLock）—— _mark_downlocked 内部会调用 _archive_old_records，两者都需加锁，必须用 RLock 防死锁！
 
     def _get_history_path(self) -> Path:
-        """获取下载记录文件路径"""
-        output_dir = Path(self.config.get("output_dir", "downloads"))
-        return output_dir / self.HISTORY_FILE
+        """获取下载记录文件路径（固定在Config目录，不随下载目录变化）"""
+        return self._config_dir / self.HISTORY_FILE
 
     def _get_archive_path(self) -> Path:
         """获取归档 ID 文件路径（仅存 video_id 集合，文件极小）"""
-        output_dir = Path(self.config.get("output_dir", "downloads"))
-        return output_dir / self.ARCHIVE_ID_FILE
+        return self._config_dir / self.ARCHIVE_ID_FILE
 
     def _load_history(self) -> Dict[str, dict]:
         """加载已下载记录 {video_id: {title, date, url, ...}}"""

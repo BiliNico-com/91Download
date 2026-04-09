@@ -59,7 +59,7 @@ jobs:
       - name: 安装依赖
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install "Core\Config\requirements.txt"
           pip install pyinstaller>=6.0.0
 
       - name: 打包EXE
@@ -86,9 +86,10 @@ jobs:
 
       - name: 复制说明文件到打包目录
         run: |
-          copy requirements.txt "dist\%APP_NAME%\"
           copy README.md "dist\%APP_NAME%\"
-          echo {"output_dir":"downloads","ffmpeg_path":"","proxy_enabled":false} > "dist\%APP_NAME%\config.json"
+          if not exist "dist\%APP_NAME%\Core\Config" mkdir "dist\%APP_NAME%\Core\Config"
+          echo {"output_dir":"downloads","ffmpeg_path":"","proxy_enabled":false,"proxy_host":"127.0.0.1","proxy_port":"1080","site":"https://ml0987.xyz","list_type":"list","page_start":1,"page_end":3,"title_with_author":true,"sort_by_upload_date":false,"sites":{"ml0987.xyz":"https://ml0987.xyz","hsex.icu":"https://hsex.icu","hsex.men":"https://hsex.men"}} > "dist\%APP_NAME%\Core\Config\config.json"
+          copy logo.png "dist\%APP_NAME%\"
 
       - name: 打包ZIP
         shell: powershell
