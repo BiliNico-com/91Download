@@ -15,11 +15,45 @@ import subprocess
 import io
 from pathlib import Path
 
+# ---- 启动错误捕获（打包后必须能看到报错） ----
+def _get_base_dir():
+    """获取程序根目录（exe所在或脚本所在）"""
+    if getattr(sys, 'frozen', False):
+        return Path(sys.executable).parent
+    return Path(__file__).parent
+
+def _fatal_import_error(pkg_name):
+    """导入失败时：打印详细错误、写日志文件、等待用户确认"""
+    import traceback
+    tb = traceback.format_exc()
+    base = _get_base_dir()
+    log_path = base / "_startup_error.txt"
+    try:
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write(f"=== 91Download 启动错误 ===\n")
+            f.write(f"Python: {sys.version}\n")
+            f.write(f"Executable: {sys.executable}\n")
+            f.write(f"Frozen: {getattr(sys, 'frozen', False)}\n")
+            f.write(f"Base dir: {base}\n\n")
+            f.write(f"Failed import: {pkg_name}\n\n{tb}\n\n")
+            f.write("sys.path:\n")
+            for p in sys.path:
+                f.write(f"  {p}\n")
+    except Exception:
+        pass
+    print("=" * 60)
+    print(f"致命错误: 无法加载 [{pkg_name}]")
+    print(f"详细日志已写入: {log_path}")
+    print("=" * 60)
+    print(tb)
+    print()
+    input("按 Enter 键退出...")
+    sys.exit(1)
+
 try:
     import customtkinter as ctk
 except ImportError:
-    print("错误: 请先安装 customtkinter: pip install customtkinter")
-    sys.exit(1)
+    _fatal_import_error("customtkinter")
 
 try:
     from PIL import Image
@@ -2329,4 +2363,26 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        base = _get_base_dir()
+        log_path = base / "_startup_error.txt"
+        try:
+            with open(log_path, "w", encoding="utf-8") as f:
+                f.write(f"=== 91Download 运行时错误 ===\n")
+                f.write(f"Python: {sys.version}\n")
+                f.write(f"Executable: {sys.executable}\n")
+                f.write(f"Frozen: {getattr(sys, 'frozen', False)}\n\n")
+                traceback.print_exc(file=f)
+                f.write("\n")
+                f.write("sys.path:\n")
+                for p in sys.path:
+                    f.write(f"  {p}\n")
+        except Exception:
+            pass
+        traceback.print_exc()
+        print()
+        print(f"错误日志已写入: {log_path}")
+        input("按 Enter 键退出...")
