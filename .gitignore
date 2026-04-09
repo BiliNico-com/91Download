@@ -1,0 +1,23 @@
+# Python 依赖
+requirements.txt
+# 虚拟环境
+venv/
+# 下载输出
+downloads/
+# PyInstaller 构建产物
+build/
+dist/
+*.spec
+# IDE
+.vscode/
+.idea/
+__pycache__/
+*.py[cod]
+*$py.class
+# OS
+.DS_Store
+Thumbs.db
+# 日志
+*.log
+# 本地配置（可选保留）
+# config.json
