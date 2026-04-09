@@ -108,10 +108,10 @@ def get_site_list(config: dict = None) -> list[str]:
     return list(_load_sites_from_config().values())
 
 def _get_default_download_dir() -> str:
-    """默认下载目录: exe所在目录的上级/Downloads（即exe平级）"""
+    """默认下载目录: 程序所在目录/Downloads"""
     if getattr(sys, 'frozen', False):
-        # 打包后: exe在 91Download/91Download.exe → Downloads 在 91Download/../Downloads
-        base = Path(sys.executable).parent.parent
+        # 打包后: exe在 91Download/91Download.exe → Downloads 在 91Download/Downloads
+        base = Path(sys.executable).parent
     else:
         # 开发时: 脚本所在目录
         base = APP_DIR
@@ -157,9 +157,11 @@ class Theme:
     PRIMARY = "#6366f1"
     PRIMARY_HOVER = "#4f46e5"
     PRIMARY_DARK = "#3730a3"
-    SUCCESS = "#10b981"
+    SUCCESS = "#059669"
     WARNING = "#f59e0b"
-    ERROR = "#ef4444"
+    ERROR = "#dc2626"
+    SUCCESS_HOVER = "#047857"
+    ERROR_HOVER = "#b91c1c"
     INFO = "#3b82f6"
 
     GRADIENT_START = "#6366f1"
@@ -197,6 +199,10 @@ class ModernApp(ctk.CTk):
         self.geometry("1200x750")
         self.minsize(1000, 680)
         self.configure(fg_color=Theme.BG_BODY)
+
+        # 窗口缩放节流：减少 resize 时的卡顿
+        self._resize_after_id = None
+        self.bind("<Configure>", self._on_resize_throttle)
 
         # 加载配置
         self.config = load_config()
@@ -413,6 +419,12 @@ class ModernApp(ctk.CTk):
                 self._place_frame(frame)
             else:
                 frame.place_forget()
+
+    def _on_resize_throttle(self, event=None):
+        """窗口缩放节流：减少频繁布局计算导致的卡顿"""
+        if self._resize_after_id:
+            self.after_cancel(self._resize_after_id)
+        self._resize_after_id = self.after(50, lambda: None)
 
     def show_frame(self, page_name: str):
         """切换显示的页面"""
@@ -720,12 +732,12 @@ class ModernApp(ctk.CTk):
         end_entry.pack(side="left", padx=(4, 16))
 
         self._crawl_start_btn = ctk.CTkButton(row2, text=" 开始爬取", width=100, height=32,
-                       fg_color=Theme.SUCCESS, hover_color="#059669",
+                       fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER,
                        font=ctk.CTkFont(size=13, weight="bold"), corner_radius=Theme.BTN_RADIUS,
                        command=self._start_crawl)
         self._crawl_start_btn.pack(side="left", padx=(0, 8))
         ctk.CTkButton(row2, text="■ 停止", width=80, height=32,
-                       fg_color=Theme.ERROR, hover_color="#dc2626",
+                       fg_color=Theme.ERROR, hover_color=Theme.ERROR_HOVER,
                        font=ctk.CTkFont(size=13, weight="bold"), corner_radius=Theme.BTN_RADIUS,
                        command=self._stop_crawl).pack(side="left")
 
@@ -785,7 +797,7 @@ class ModernApp(ctk.CTk):
 
         # 日志区域
         log_btn_row = ctk.CTkFrame(right_card, fg_color="transparent")
-        log_btn_row.pack(fill="x", padx=16, pady=(4, 0))
+        log_btn_row.pack(fill="x", padx=16, pady=(8, 0))
         self._crawl_log_visible = ctk.BooleanVar(value=False)
         self._crawl_log_toggle_btn = ctk.CTkButton(log_btn_row, text=" 日志 ▸", width=80, height=28,
                                                     fg_color="#e2e8f0", hover_color="#cbd5e1",
@@ -901,12 +913,12 @@ class ModernApp(ctk.CTk):
                       font=ctk.CTkFont(size=13), fg_color=Theme.BG_INPUT).pack(side="left", padx=(4, 16))
 
         self.search_dl_btn = ctk.CTkButton(self.search_video_frame, text=" 搜索并下载", width=110, height=32,
-                       fg_color=Theme.SUCCESS, hover_color="#059669",
+                       fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER,
                        font=ctk.CTkFont(size=13, weight="bold"), corner_radius=Theme.BTN_RADIUS,
                        command=self._start_search)
         self.search_dl_btn.pack(side="left", padx=(0, 8))
         ctk.CTkButton(self.search_video_frame, text="■ 停止", width=70, height=32,
-                       fg_color=Theme.ERROR, hover_color="#dc2626",
+                       fg_color=Theme.ERROR, hover_color=Theme.ERROR_HOVER,
                        font=ctk.CTkFont(size=13, weight="bold"), corner_radius=Theme.BTN_RADIUS,
                        command=self._stop_crawl).pack(side="left")
 
@@ -914,7 +926,7 @@ class ModernApp(ctk.CTk):
         self.search_author_frame = ctk.CTkFrame(card, fg_color="transparent")
 
         self.search_author_dl_btn = ctk.CTkButton(self.search_author_frame, text=" 搜索作者", width=100, height=30,
-                       fg_color=Theme.SUCCESS, hover_color="#059669",
+                       fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER,
                        font=ctk.CTkFont(size=12), corner_radius=Theme.BTN_RADIUS,
                        command=lambda: self._search_authors(append=False)).pack(side="left", padx=(0, 6))
         ctk.CTkButton(self.search_author_frame, text=" 追加", width=65, height=30,
@@ -942,11 +954,11 @@ class ModernApp(ctk.CTk):
         ctk.CTkEntry(self.search_author_frame, textvariable=self.search_author_page_end_var,
                       width=45, height=30, font=ctk.CTkFont(size=12), fg_color=Theme.BG_INPUT).pack(side="left", padx=(4, 12))
         ctk.CTkButton(self.search_author_frame, text=" 下载选中作者", width=115, height=30,
-                       fg_color=Theme.SUCCESS, hover_color="#059669",
+                       fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER,
                        font=ctk.CTkFont(size=12, weight="bold"), corner_radius=Theme.BTN_RADIUS,
                        command=self._start_author_crawl).pack(side="left", padx=(0, 6))
         ctk.CTkButton(self.search_author_frame, text="■ 停止", width=60, height=30,
-                       fg_color=Theme.ERROR, hover_color="#dc2626",
+                       fg_color=Theme.ERROR, hover_color=Theme.ERROR_HOVER,
                        font=ctk.CTkFont(size=12), corner_radius=Theme.BTN_RADIUS,
                        command=self._stop_crawl).pack(side="left")
 
@@ -1020,7 +1032,7 @@ class ModernApp(ctk.CTk):
 
         # 搜索日志
         slog_btn = ctk.CTkFrame(rcard, fg_color="transparent")
-        slog_btn.pack(fill="x", padx=16, pady=(4, 0))
+        slog_btn.pack(fill="x", padx=16, pady=(8, 0))
         self._search_log_visible = ctk.BooleanVar(value=False)
         ctk.CTkButton(slog_btn, text=" 日志 ▸", width=80, height=28,
                        fg_color="#e2e8f0", hover_color="#cbd5e1", font=ctk.CTkFont(size=11),
@@ -1101,7 +1113,7 @@ class ModernApp(ctk.CTk):
         self.single_status_label.pack(side="left", padx=8)
 
         self.single_dl_btn = ctk.CTkButton(action, text=" 下载选中", width=95, height=32,
-                       fg_color=Theme.SUCCESS, hover_color="#059669",
+                       fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER,
                        font=ctk.CTkFont(size=13, weight="bold"), corner_radius=Theme.BTN_RADIUS,
                        command=self._start_single_batch)
         self.single_dl_btn.pack(side="right", padx=6)
@@ -1112,7 +1124,7 @@ class ModernApp(ctk.CTk):
 
         # 进度卡片
         pcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
-        pcard.pack(fill="x", pady=(0, 8))
+        pcard.pack(fill="x", pady=(0, 12))
 
         pc_header = ctk.CTkLabel(pcard, text=" 下载进度", font=ctk.CTkFont(size=13, weight="bold"),
                                    text_color=Theme.TEXT_PRIMARY)
@@ -1148,7 +1160,7 @@ class ModernApp(ctk.CTk):
 
         # 日志
         sl_btn = ctk.CTkFrame(pcard, fg_color="transparent")
-        sl_btn.pack(fill="x", padx=16, pady=(4, 8))
+        sl_btn.pack(fill="x", padx=16, pady=(8, 8))
         self._single_log_visible = ctk.BooleanVar(value=False)
         ctk.CTkButton(sl_btn, text=" 日志 ▸", width=80, height=28,
                        fg_color="#e2e8f0", hover_color="#cbd5e1", font=ctk.CTkFont(size=11),
@@ -1166,7 +1178,7 @@ class ModernApp(ctk.CTk):
 
         # 手动URL输入
         mcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
-        mcard.pack(fill="x", pady=(0, 8))
+        mcard.pack(fill="x", pady=(0, 12))
         ctk.CTkLabel(mcard, text=" 手动输入 URL（可选）", font=ctk.CTkFont(size=13, weight="bold"),
                       text_color=Theme.TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(12, 6))
         mrow = ctk.CTkFrame(mcard, fg_color="transparent")
@@ -1178,7 +1190,7 @@ class ModernApp(ctk.CTk):
         ctk.CTkEntry(mrow, textvariable=self.title_var, width=200, height=32,
                       font=ctk.CTkFont(size=13), fg_color=Theme.BG_INPUT).pack(side="left", padx=(0, 8))
         self.single_manual_dl_btn = ctk.CTkButton(mrow, text=" 下载", width=60, height=32,
-                       fg_color=Theme.SUCCESS, hover_color="#059669",
+                       fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER,
                        font=ctk.CTkFont(size=13, weight="bold"), corner_radius=Theme.BTN_RADIUS,
                        command=self._start_single_manual)
         self.single_manual_dl_btn.pack(side="left")
@@ -1197,7 +1209,7 @@ class ModernApp(ctk.CTk):
 
         # 保存目录
         dcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
-        dcard.pack(fill="x", pady=(0, 10))
+        dcard.pack(fill="x", pady=(0, 14))
         ctk.CTkLabel(dcard, text=" 保存目录", font=ctk.CTkFont(size=14, weight="bold"),
                       text_color=Theme.TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 8))
         self.save_dir_var = ctk.StringVar(value=self.config["output_dir"] or _get_default_download_dir())
@@ -1210,7 +1222,7 @@ class ModernApp(ctk.CTk):
 
         # 下载设置
         dlcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
-        dlcard.pack(fill="x", pady=(0, 10))
+        dlcard.pack(fill="x", pady=(0, 14))
         ctk.CTkLabel(dlcard, text=" 下载选项", font=ctk.CTkFont(size=14, weight="bold"),
                       text_color=Theme.TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 8))
 
@@ -1224,7 +1236,7 @@ class ModernApp(ctk.CTk):
 
         # 最小化到托盘
         tcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
-        tcard.pack(fill="x", pady=(0, 10))
+        tcard.pack(fill="x", pady=(0, 14))
         ctk.CTkLabel(tcard, text=" 最小化到托盘", font=ctk.CTkFont(size=14, weight="bold"),
                       text_color=Theme.TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 8))
 
@@ -1234,7 +1246,7 @@ class ModernApp(ctk.CTk):
 
         # 代理设置
         pcard = ctk.CTkFrame(frame, fg_color=Theme.BG_CARD, corner_radius=Theme.CARD_RADIUS)
-        pcard.pack(fill="x", pady=(0, 10))
+        pcard.pack(fill="x", pady=(0, 14))
         ctk.CTkLabel(pcard, text=" SOCKS5 代理（可选）", font=ctk.CTkFont(size=14, weight="bold"),
                       text_color=Theme.TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 8))
 
@@ -1297,7 +1309,7 @@ class ModernApp(ctk.CTk):
         btn_row = ctk.CTkFrame(frame, fg_color="transparent")
         btn_row.pack(fill="x", padx=20, pady=(0, 16))
         ctk.CTkButton(btn_row, text=" 清空日志", width=100, height=32,
-                       fg_color=Theme.ERROR, hover_color="#dc2626", font=ctk.CTkFont(size=12),
+                       fg_color=Theme.ERROR, hover_color=Theme.ERROR_HOVER, font=ctk.CTkFont(size=12),
                        corner_radius=Theme.BTN_RADIUS, command=self._clear_log).pack(side="left", padx=(0, 8))
         ctk.CTkButton(btn_row, text=" 导出日志...", width=110, height=32,
                        fg_color="#e2e8f0", hover_color="#cbd5e1", font=ctk.CTkFont(size=12),
@@ -1709,7 +1721,7 @@ class ModernApp(ctk.CTk):
         chip.pack_propagate(False)
 
         is_sel = param in self._author_selected
-        bg = Theme.PRIMARY if is_sel else Theme.BG_INPUT
+        bg = Theme.PRIMARY if is_sel else "#e8eef5"
         txt_col = "white" if is_sel else Theme.TEXT_PRIMARY
 
         info = ctk.CTkLabel(chip, text=f"{name}\n{count}v·{pages}p",
@@ -1718,15 +1730,15 @@ class ModernApp(ctk.CTk):
         info.pack(expand=True, fill="both", padx=8, pady=4)
 
         def toggle(e=None, p=param, ch=chip, lb=info):
-            if p in self._author_selected: self._author_selected.discard(p); nb=Theme.BG_INPUT; nc=Theme.TEXT_PRIMARY
+            if p in self._author_selected: self._author_selected.discard(p); nb="#e8eef5"; nc=Theme.TEXT_PRIMARY
             else: self._author_selected.add(p); nb=Theme.PRIMARY; nc="white"
             ch.configure(fg_color=nb); lb.configure(text_color=nc)
 
         chip.bind("<Button-1>", toggle); info.bind("<Button-1>", toggle)
 
-        del_btn = ctk.CTkLabel(chip, text="✕", font=ctk.CTkFont(size=10), text_color=Theme.TEXT_MUTED,
-                                 width=16, fg_color="transparent")
-        del_btn.place(relx=0.96, rely=0.04)
+        del_btn = ctk.CTkLabel(chip, text="✕", font=ctk.CTkFont(size=11, weight="bold"), text_color="#ef4444",
+                                 width=18, fg_color="transparent")
+        del_btn.place(relx=0.93, rely=0.04)
         def rm(p=param):
             for i, item in enumerate(self._author_queue_items):
                 if item["param"] == p:
@@ -1742,7 +1754,7 @@ class ModernApp(ctk.CTk):
             if idx >= len(self._author_queue_items): continue
             param = self._author_queue_items[idx]["param"]
             is_sel = param in self._author_selected
-            bg = Theme.PRIMARY if is_sel else Theme.BG_INPUT
+            bg = Theme.PRIMARY if is_sel else "#e8eef5"
             tc = "white" if is_sel else Theme.TEXT_PRIMARY
             child.configure(fg_color=bg)
             for sub in child.winfo_children():
@@ -2108,12 +2120,16 @@ class ModernApp(ctk.CTk):
         use=self.proxy_enabled_var.get()
         if (not host or not port) and use:
             self._show_warning("勾选了启用代理，请填写主机和端口");return
-        rw=ctk.CTkToplevel(self);rw.title("代理测试");rw.geometry("450x320");rw.resizable(False,False)
-        rt=ctk.CTkTextbox(rw,height=280,font=ctk.CTkFont(size=11,family="Consolas"),fg_color=Theme.BG_CARD,corner_radius=10)
+        rw=ctk.CTkToplevel(self);rw.title("代理测试");rw.geometry("480x380");rw.resizable(False,False)
+        rt=ctk.CTkTextbox(rw,height=340,font=ctk.CTkFont(size=12,family="Consolas"),fg_color=Theme.BG_CARD,corner_radius=10)
         rt.pack(fill="both",expand=True,padx=12,pady=12)
+        # 配置颜色 tag
+        rt.tag_config("green", foreground="#16a34a")
+        rt.tag_config("red", foreground="#dc2626")
+        rt.tag_config("orange", foreground="#ea580c")
+        rt.tag_config("bold", font=ctk.CTkFont(size=12, family="Consolas", weight="bold"))
         def ap(t,tag=None):
-            cm={"green":"#2e7d32","red":"#c62828","orange":"#e65100"}
-            if tag and tag in cm:
+            if tag:
                 rt.insert("end",t+"\n",tag)
             else:
                 rt.insert("end",t+"\n")
@@ -2124,14 +2140,29 @@ class ModernApp(ctk.CTk):
             import requests as req
             proxies={"http":f"socks5h://{user}:{passwd}@{host}:{port}","https":f"socks5h://{user}:{passwd}@{host}:{port}"} if (use and user and passwd) else ({"http":f"socks5h://{host}:{port}","https":f"socks5h://{host}:{port}"} if use else None)
             targets=[("Google","https://www.google.com"),("YouTube","https://www.youtube.com"),("Twitter/X","https://x.com")]
+            ok_count=0; fail_count=0
             for name,url in targets:
                 self.after(0,lambda n=name:ap(f"正在测试 {n}..."))
                 try:
                     resp=req.get(url,proxies=proxies,timeout=10,allow_redirects=False)
                     s=resp.status_code
-                    if 200<=s<400: self.after(0,lambda n=name,st=s:ap(f"  ✓ {name} — HTTP {st}","green"))
-                    else: self.after(0,lambda n=name,st=s:ap(f"  ✗ {name} — HTTP {st}","orange"))
-                except Exception as e: self.after(0,lambda n=name,err=str(e)[:100]:ap(f"  ✗ {name} — {err}","red"))
+                    if 200<=s<400:
+                        self.after(0,lambda n=name,st=s:ap(f"  ✓ {n} — HTTP {st}","green"))
+                        ok_count+=1
+                    else:
+                        self.after(0,lambda n=name,st=s:ap(f"  ✗ {n} — HTTP {st}","orange"))
+                        fail_count+=1
+                except Exception as e:
+                    self.after(0,lambda n=name,err=str(e)[:100]:ap(f"  ✗ {n} — {err}","red"))
+                    fail_count+=1
+            # 连通性总结
+            self.after(0,lambda:ap(""))
+            if ok_count==len(targets):
+                self.after(0,lambda:ap("✓ 网络连通正常，所有目标均可访问","green"))
+            elif ok_count>0:
+                self.after(0,lambda:ap(f"⚠ 网络部分通畅：{ok_count} 个可达，{fail_count} 个不可达","orange"))
+            else:
+                self.after(0,lambda:ap("✗ 网络不通，所有目标均无法访问","red"))
             self.after(0,lambda:ap("\n── 测试完成 ──"))
         threading.Thread(target=run_test,daemon=True).start()
 
