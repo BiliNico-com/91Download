@@ -156,11 +156,11 @@ class ModernApp(ctk.CTk):
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
-        # 品牌 Logo 区
+        # 品牌 Logo 区（保持在顶部）
         brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        brand.pack(fill="x", padx=16, pady=(186, 16))
+        brand.pack(fill="x", padx=16, pady=(36, 8))
 
-        logo_lbl = ctk.CTkLabel(brand, text="📥", font=ctk.CTkFont(size=28))
+        logo_lbl = ctk.CTkLabel(brand, text="⬇", font=ctk.CTkFont(size=26))
         logo_lbl.pack(anchor="w")
         name_lbl = ctk.CTkLabel(brand, text="91Download",
                                  font=ctk.CTkFont(size=17, weight="bold"),
@@ -171,7 +171,9 @@ class ModernApp(ctk.CTk):
         sep = ctk.CTkFrame(self.sidebar, height=1, fg_color=Theme.BORDER_COLOR)
         sep.pack(fill="x", padx=20, pady=(0, 12))
 
-        # 导航按钮
+        # 导航按钮容器（整体下移150px）
+        nav_container = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        nav_container.pack(fill="both", expand=True, padx=0, pady=(0, 0))
         nav_items = [
             ("📦", "批量爬取", "batch"),
             ("🔍", "搜索",     "search"),
@@ -186,7 +188,7 @@ class ModernApp(ctk.CTk):
 
         for i, (icon, label, page_name) in enumerate(nav_items):
             nav_btn = ctk.CTkButton(
-                self.sidebar,
+                nav_container,
                 text=f"{icon}  {label}",
                 font=ctk.CTkFont(size=14),
                 fg_color="transparent" if page_name != "batch" else Theme.BG_HOVER,
@@ -197,7 +199,8 @@ class ModernApp(ctk.CTk):
                 corner_radius=Theme.INPUT_RADIUS,
                 command=lambda pn=page_name: self.show_frame(pn),
             )
-            nav_btn.grid(row=i+1, column=0, sticky="ew", padx=(12, 12), pady=2)
+            nav_btn.grid(row=i, column=0, sticky="ew", padx=(12, 12), pady=2)
+            nav_container.columnconfigure(0, weight=1)
             self.nav_buttons[page_name] = nav_btn
             self.nav_frames[page_name] = (nav_btn, nav_btn)
 
