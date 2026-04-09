@@ -26,7 +26,7 @@ _run_*.py
 build_log*.txt
 exe_*.txt
 run_err.txt
-# 本地配置
-config.json
+# 本地配置（只忽略根目录的 config.json，不忽略 Core/Config/config.json）
+/config.json
 # WorkBuddy 内部文件
 .workbuddy/

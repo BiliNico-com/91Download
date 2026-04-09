@@ -134,6 +134,7 @@ DEFAULT_CONFIG = {
     "title_with_author": True,
     "sort_by_upload_date": True,
     "minimize_to_tray": True,
+    "sites": {},
 }
 
 # ==================== 日志 ====================
@@ -2329,6 +2330,13 @@ def load_config()->dict:
         try:
             with open(CONFIG_FILE,encoding="utf-8") as f: cfg.update(json.load(f))
         except Exception as e: logger.warning(f"加载配置失败: {e}")
+    else:
+        # 首次运行：自动创建带默认值的 config.json
+        try:
+            CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+            save_config(cfg)
+            logger.info(f"已生成默认配置: {CONFIG_FILE}")
+        except Exception as e: logger.warning(f"创建默认配置失败: {e}")
     return cfg
 
 def save_config(cfg:dict):

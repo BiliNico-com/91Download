@@ -1,0 +1,22 @@
+{
+  "debug": 0,
+  "output_dir": "",
+  "ffmpeg_path": "",
+  "proxy_enabled": false,
+  "proxy_host": "127.0.0.1",
+  "proxy_port": "1080",
+  "proxy_user": "",
+  "proxy_pass": "",
+  "site": "https://ml0987.xyz",
+  "img_base_url": "https://img.ml0987.com",
+  "list_type": "list",
+  "page_start": 1,
+  "page_end": 3,
+  "title_with_author": true,
+  "sort_by_upload_date": false,
+  "sites": {
+    "ml0987.xyz": "https://ml0987.xyz",
+    "hsex.icu": "https://hsex.icu",
+    "hsex.men": "https://hsex.men"
+  }
+}
