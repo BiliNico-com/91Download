@@ -2270,6 +2270,7 @@ class ModernApp(ctk.CTk):
             return
         if not self._tray_enabled or not HAS_PYSTRAY or not self.tray_icon:
             return
+            return
         # 判断是否是最小化事件
         try:
             cur_state = self.wm_state()
