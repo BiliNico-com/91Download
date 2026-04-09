@@ -542,6 +542,22 @@ class TSDownloader:
             return False
 
 
+# ==================== 工具函数 ====================
+
+def download_image(url: str, timeout: int = 10) -> bytes:
+    """下载图片并返回 bytes"""
+    try:
+        if requests is None:
+            return b""
+        resp = requests.get(url, timeout=timeout,
+                            headers={"User-Agent": "Mozilla/5.0"})
+        if resp.status_code == 200:
+            return resp.content
+    except Exception:
+        pass
+    return b""
+
+
 # ==================== 爬虫核心 ====================
 
 class CrawlerCore:
