@@ -126,15 +126,19 @@ DEFAULT_CONFIG = {
     "proxy_port": "1080",
     "proxy_user": "",
     "proxy_pass": "",
-    "site": "",
-    "img_base_url": "",
+    "site": "https://ml0987.xyz",
+    "img_base_url": "https://img.ml0987.com",
     "list_type": "list",
     "page_start": 1,
     "page_end": 3,
     "title_with_author": True,
     "sort_by_upload_date": True,
     "minimize_to_tray": True,
-    "sites": {},
+    "sites": {
+        "ml0987.xyz": "https://ml0987.xyz",
+        "hsex.icu": "https://hsex.icu",
+        "hsex.men": "https://hsex.men",
+    },
 }
 
 # ==================== 日志 ====================
