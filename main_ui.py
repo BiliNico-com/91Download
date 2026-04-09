@@ -2187,15 +2187,19 @@ class ModernApp(ctk.CTk):
         try:
             # 生成托盘图标（绿色圆角方块+下载箭头）
             img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
-            from PIL import ImageDraw, ImageFont
-            draw = ImageDraw.Draw(img)
-            # 绿色圆角矩形背景（模拟）
-            draw.rounded_rectangle([8, 8, 56, 56], radius=12, fill=(16, 185, 129, 255))  # #10b981
-            # 下载箭头
-            draw.polygon([(28, 20), (44, 36), (34, 36), (34, 48), (22, 48), (22, 36), (12, 36)],
-                         fill=(255, 255, 255, 255))
-            # 横线
-            draw.rectangle([14, 46, 50, 50], fill=(255, 255, 255, 255))
+            try:
+                from PIL import ImageDraw
+                draw = ImageDraw.Draw(img)
+                # 绿色圆角矩形背景
+                draw.rounded_rectangle([8, 8, 56, 56], radius=12, fill=(16, 185, 129, 255))
+                # 下载箭头
+                draw.polygon([(28, 20), (44, 36), (34, 36), (34, 48), (22, 48), (22, 36), (12, 36)],
+                             fill=(255, 255, 255, 255))
+                # 横线
+                draw.rectangle([14, 46, 50, 50], fill=(255, 255, 255, 255))
+            except Exception:
+                # ImageDraw 不可用则用纯绿色方块
+                img.paste((16, 185, 129, 255), [0, 0, 64, 64])
 
             self.tray_icon = pystray.Icon(
                 name="91Download",
@@ -2210,9 +2214,11 @@ class ModernApp(ctk.CTk):
             )
             # 在独立线程中运行托盘，避免阻塞 tkinter 主循环
             import threading
-            threading.Thread(target=self.tray_icon.run, daemon=True).start()
+            t = threading.Thread(target=self.tray_icon.run, daemon=True)
+            t.daemon = True
+            t.start()
         except Exception as e:
-            logger.warning(f"托盘初始化失败: {e}")
+            logger.warning(f"托盘初始化失败(程序可正常使用): {e}")
             self.tray_icon = None
 
     def _tray_show_window(self, icon=None, item=None):

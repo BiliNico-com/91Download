@@ -64,7 +64,7 @@ jobs:
 
       - name: 打包EXE
         run: |
-          pyinstaller --noconfirm --onedir --windowed --contents-directory Core --name "%APP_NAME%" --add-data "lib;lib" --hidden-import PIL --hidden-import PIL.ImageTk --hidden-import PIL.WebPImagePlugin --hidden-import Crypto.Cipher --collect-all Pillow --collect-all pycryptodome main_ui.py
+          pyinstaller --noconfirm --onedir --windowed --contents-directory Core --name "%APP_NAME%" --add-data "lib;lib" --hidden-import PIL --hidden-import PIL.ImageTk --hidden-import PIL.WebPImagePlugin --hidden-import Crypto.Cipher --collect-all Pillow --collect-all pycryptodome --collect-all pystray --hidden-import pystray._base --hidden-import pystray._win32 --hidden-import pystray._util.win32_com main_ui.py
 
       - name: 下载FFmpeg压缩包
         run: |
@@ -88,6 +88,7 @@ jobs:
         run: |
           copy README.md "dist\%APP_NAME%\"
           if not exist "dist\%APP_NAME%\Core\Config" mkdir "dist\%APP_NAME%\Core\Config"
+          copy "Core\Config\requirements.txt" "dist\%APP_NAME%\Core\Config\"
           echo {"output_dir":"downloads","ffmpeg_path":"","proxy_enabled":false,"proxy_host":"127.0.0.1","proxy_port":"1080","site":"https://ml0987.xyz","list_type":"list","page_start":1,"page_end":3,"title_with_author":true,"sort_by_upload_date":false,"minimize_to_tray":true,"sites":{"ml0987.xyz":"https://ml0987.xyz","hsex.icu":"https://hsex.icu","hsex.men":"https://hsex.men"}} > "dist\%APP_NAME%\Core\Config\config.json"
           copy logo.png "dist\%APP_NAME%\"
 
