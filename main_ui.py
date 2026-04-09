@@ -87,8 +87,8 @@ class Theme:
     BG_SIDEBAR = "#ffffff"
     BG_INPUT = "#f8fafc"
     BG_HOVER = "#eef2ff"
-    # 下拉菜单半透明色
-    DROPDOWN_BG = "#f0f4f8ee"
+    # 下拉菜单色（比输入框稍深）
+    DROPDOWN_BG = "#e8eef5"
 
     TEXT_PRIMARY = "#0f172a"
     TEXT_SECONDARY = "#334155"
