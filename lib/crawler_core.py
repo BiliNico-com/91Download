@@ -54,12 +54,8 @@ LIST_TYPE_ALIASES = {
     "10分钟+": "long",
 }
 
-# 可用域名列表
-MIRROR_SITES = {
-    "ml0987.xyz": "https://ml0987.xyz",
-    "hsex.icu":   "https://hsex.icu",
-    "hsex.men":   "https://hsex.men",
-}
+# 可用域名列表（运行时从 config.json 读取，此处仅作空后备）
+MIRROR_SITES = {}
 
 # 通用请求头（Referer 使用占位符，运行时替换）
 DEFAULT_HEADERS = {
@@ -578,7 +574,8 @@ class CrawlerCore:
         self.overall_progress_callback = None  # 整体进度回调 (done, total)，由外部注入
         self._config_dir = config_dir or Path(__file__).parent.parent / "Core" / "Config"
         self._stop_flag = False
-        self.base_url = (base_url or config.get("site", "https://ml0987.xyz")).rstrip("/")
+        self.base_url = (base_url or config.get("site", "")).rstrip("/")
+        self.img_base_url = config.get("img_base_url", "").rstrip("/")
         self.session = requests.Session()
         self.session.headers.update({**DEFAULT_HEADERS, "Referer": f"{self.base_url}/"})
 
@@ -1151,7 +1148,7 @@ class CrawlerCore:
             ):
                 href, vid, cover, title = m.group(1), m.group(2), m.group(3), m.group(4).strip()
                 if not cover.startswith('http'):
-                    cover = f"https://img.ml0987.com{cover}"
+                    cover = f"{self.img_base_url}{cover}"
                 if vid not in seen_ids:
                     seen_ids.add(vid)
                     videos.append({
@@ -1173,7 +1170,7 @@ class CrawlerCore:
                     if cover_m:
                         cover = cover_m.group(1)
                         if not cover.startswith('http'):
-                            cover = f"https://img.ml0987.com{cover}"
+                            cover = f"{self.img_base_url}{cover}"
                     if vid not in seen_ids:
                         seen_ids.add(vid)
                         videos.append({
@@ -1480,7 +1477,7 @@ class CrawlerCore:
                 href, vid, cover, title = m.group(1), m.group(2), m.group(3), m.group(4).strip()
                 # 补全完整 URL（如果是相对路径）
                 if not cover.startswith('http'):
-                    cover = f"https://img.ml0987.com{cover}"
+                    cover = f"{self.img_base_url}{cover}"
                 if vid not in seen_ids:
                     seen_ids.add(vid)
                     videos.append({

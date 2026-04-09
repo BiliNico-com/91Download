@@ -73,9 +73,6 @@ from lib import (
     LIST_TYPE_ALIASES, DEFAULT_HEADERS, download_image
 )
 
-# 默认站点（当配置中没有 sites 字段时的后备值）
-DEFAULT_MIRROR_SITES = MIRROR_SITES
-
 # ==================== 配置 ====================
 
 APP_DIR = Path(__file__).parent
@@ -92,7 +89,7 @@ CONFIG_FILE = CONFIG_DIR / "config.json"
 
 
 def _load_sites_from_config() -> dict:
-    """从配置文件读取站点列表，配置优先，没有则使用默认值"""
+    """从配置文件读取站点列表，配置优先，没有则返回空"""
     try:
         if CONFIG_FILE.exists():
             cfg = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
@@ -101,7 +98,7 @@ def _load_sites_from_config() -> dict:
                 return {k: v for k, v in sites.items() if v}
     except Exception:
         pass
-    return DEFAULT_MIRROR_SITES
+    return {}
 
 
 def get_site_list(config: dict = None) -> list[str]:
@@ -121,6 +118,7 @@ def _get_default_download_dir() -> str:
     return str(base / "Downloads")
 
 DEFAULT_CONFIG = {
+    "debug": 0,
     "output_dir": "",
     "ffmpeg_path": "",
     "proxy_enabled": False,
@@ -128,7 +126,8 @@ DEFAULT_CONFIG = {
     "proxy_port": "1080",
     "proxy_user": "",
     "proxy_pass": "",
-    "site": "https://ml0987.xyz",
+    "site": "",
+    "img_base_url": "",
     "list_type": "list",
     "page_start": 1,
     "page_end": 3,
@@ -2062,7 +2061,7 @@ class ModernApp(ctk.CTk):
 
     def _save_settings(self):
         self.config.update({
-            "output_dir": self.save_dir_var.get(), "site": self.site_var.get() or "https://ml0987.xyz",
+            "output_dir": self.save_dir_var.get(), "site": self.site_var.get() or "",
             "title_with_author": self.title_with_author_var.get(), "sort_by_upload_date": self.sort_by_upload_date_var.get(),
             "proxy_enabled": self.proxy_enabled_var.get(), "proxy_host": self.proxy_host_var.get(),
             "proxy_port": self.proxy_port_var.get(), "proxy_user": self.proxy_user_var.get(),

@@ -19,6 +19,13 @@ __pycache__/
 Thumbs.db
 # 日志
 *.log
+# 构建/调试临时文件
+_build_*.bat
+_run_*.bat
+_run_*.py
+build_log*.txt
+exe_*.txt
+run_err.txt
 # 本地配置
 config.json
 # WorkBuddy 内部文件
